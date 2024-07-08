@@ -39,7 +39,6 @@ class AgScraper(object):
                     if len(ticker) == 1:
                         for month in basket[ticker]:
                             df = blp.bds(ticker + " " + month + year[3:] + " " + "Comdty", "OPT_CHAIN")
-                            print(df)
                             if (df.shape[0] != 0):
                                 for security in df.iloc[:, 0]:
                                         if (year == curr_yr):
@@ -109,17 +108,13 @@ class AgScraper(object):
                                 if (df.shape[0] != 0):
                                     for security in df.iloc[:, 0]:
                                         try:
-                                            if (year == curr_yr):
-                                                opt = blp.bdh(tickers = security, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
-                                                opt.columns = opt.columns.droplevel()
-                                            else:
-                                                opt = blp.bdh(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
+                                            opt = blp.bdp(tickers=security, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], VWAP_Dt='20240101')
                                             opt["commod_code"] = ticker
-                                            opt["opt_put_call"] = security[4:5]
-                                            opt["opt_strike_px"] = security[-11:-7]
-                                            opt["contract_month"] = security[2:4]
+                                            opt["contract_month"] = opt.index.str[2:3] + year[3:]
+                                            temp_index = opt["px_settle_last_dt"]
+                                            opt.set_index(temp_index, inplace=True)
                                             temp = pd.concat([temp, opt], axis=0, ignore_index=False)
-                                            temp.to_csv("Ag.csv", mode=mode)
+                                            temp.to_csv("Ag.csv", mode="w")
                                         except:
                                             pass
                                 else:
@@ -142,17 +137,13 @@ class AgScraper(object):
                                 if (df.shape[0] != 0):
                                     for security in df.iloc[:, 0]:
                                         try:
-                                            if (year == curr_yr):
-                                                opt = blp.bdh(tickers = security, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
-                                                opt.columns = opt.columns.droplevel()
-                                            else:
-                                                opt = blp.bdh(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
+                                            opt = blp.bdp(tickers=security, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], VWAP_Dt='20240101')
                                             opt["commod_code"] = ticker
-                                            opt["opt_put_call"] = security[4:5]
-                                            opt["opt_strike_px"] = security[-11:-7]
-                                            opt["contract_month"] = security[2:4]
+                                            opt["contract_month"] = opt.index.str[2:3] + year[3:]
+                                            temp_index = opt["px_settle_last_dt"]
+                                            opt.set_index(temp_index, inplace=True)
                                             temp = pd.concat([temp, opt], axis=0, ignore_index=False)
-                                            temp.to_csv("Ag.csv", mode=mode)
+                                            temp.to_csv("Ag.csv", mode="w")
                                         except:
                                             pass
                                 else:
