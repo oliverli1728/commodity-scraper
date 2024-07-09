@@ -30,6 +30,7 @@ class AgScraper(object):
         for i in range(y - x + 1):
             years.append(x + i)
         
+
         global basket
         for year in years:
             year = str(year)
@@ -40,19 +41,29 @@ class AgScraper(object):
                         for month in basket[ticker]:
                             df = blp.bds(ticker + " " + month + year[3:] + " " + "Comdty", "OPT_CHAIN")
                             if (df.shape[0] != 0):
-                                for security in df.iloc[:, 0]:
+                                s = df.iloc[:, 0]
+                                try:
+                                    if (year == curr_yr):
+                                        opt = blp.bdh(tickers=s, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
+                                    else: 
+                                        opt = blp.bdh(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
+                                
+                                    cols = opt.columns.to_frame()
+
+                                    for i in range (opt.shape[1]):
+                                        settlements = pd.DataFrame()
+                                        settlements["px_settle"] = opt.iloc[:, i]
+                                        settlements["commod_code"] = cols.iloc[i, 0][0:1]
+                                        settlements["opt_put_call"] = cols.iloc[i, 0][4:5]
                                         if (year == curr_yr):
-                                            opt = blp.bdh(tickers = security, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
-                                            opt.columns = opt.columns.droplevel()
-                                        else:
-                                            opt = blp.bdh(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
-                                        opt["commod_code"] = ticker
-                                        opt["opt_put_call"] = security[4:5]
-                                        opt["opt_strike_px"] = security[-11:-7]
-                                        opt["contract_month"] = security[2:4]
-                                        temp = pd.concat([temp, opt], axis=0, ignore_index=False)
+                                            settlements["opt_strike_px"] = cols.iloc[i, 0][-11:-7]
+                                        settlements["contract_month"] = cols.iloc[i, 0][2:4]
+                                        
+                                        temp = pd.concat([temp, settlements], axis=0, ignore_index=False)
+                                        temp.drop(temp[np.isnan(temp["px_settle"])].index, inplace=True)
                                         temp.to_csv("Ag.csv", mode=mode)
-                              
+                                except:
+                                    pass
                             else:
                                
                                 try:
@@ -69,21 +80,31 @@ class AgScraper(object):
                         for month in basket[ticker]:
                             df = blp.bds(ticker + month + year[3:] + " " + "Comdty", "OPT_CHAIN")
                             if (df.shape[0] != 0):
-                                for security in df.iloc[:, 0]:
-                                    try:
+                                s = df.iloc[:, 0]
+                                try:
+                                    if (year == curr_yr):
+                                        opt = blp.bdh(tickers=s, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
+
+                                    else: 
+                                        opt = blp.bdh(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
+                                
+                                    cols = opt.columns.to_frame()
+
+                                    for i in range (opt.shape[1]):
+                                        settlements = pd.DataFrame()
+                                        settlements["px_settle"] = opt.iloc[:, i]
+                                        settlements["commod_code"] = cols.iloc[i, 0][0:1]
+                                        settlements["opt_put_call"] = cols.iloc[i, 0][4:5]
                                         if (year == curr_yr):
-                                            opt = blp.bdh(tickers = security, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
-                                            opt.columns = opt.columns.droplevel()
-                                        else:
-                                            opt = blp.bdh(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
-                                        opt["commod_code"] = ticker
-                                        opt["opt_put_call"] = security[4:5]
-                                        opt["opt_strike_px"] = security[-11:-7]
-                                        opt["contract_month"] = security[2:4]
-                                        temp = pd.concat([temp, opt], axis=0, ignore_index=False)
+                                            settlements["opt_strike_px"] = cols.iloc[i, 0][-11:-7]
+                                        settlements["contract_month"] = cols.iloc[i, 0][2:4]
+
+                                        temp = pd.concat([temp, settlements], axis=0, ignore_index=False)
+                                        temp.drop(temp[np.isnan(temp["px_settle"])].index, inplace=True)
                                         temp.to_csv("Ag.csv", mode=mode)
-                                    except:
-                                        pass
+
+                                except:
+                                    pass
                             else:
                                 opt = blp.bdh(tickers = ticker + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
                                 try:
@@ -106,17 +127,30 @@ class AgScraper(object):
                             if signal == 1:
                                 df = blp.bds(ticker + " " + month + year[3:] + " " + "Comdty", "OPT_CHAIN")
                                 if (df.shape[0] != 0):
-                                    for security in df.iloc[:, 0]:
-                                        try:
-                                            opt = blp.bdp(tickers=security, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], VWAP_Dt='20240101')
-                                            opt["commod_code"] = ticker
-                                            opt["contract_month"] = opt.index.str[2:3] + year[3:]
-                                            temp_index = opt["px_settle_last_dt"]
-                                            opt.set_index(temp_index, inplace=True)
-                                            temp = pd.concat([temp, opt], axis=0, ignore_index=False)
+                                    s = df.iloc[:, 0]
+                                    try:
+                                        if (year == curr_yr):
+                                            opt = blp.bdh(tickers=s, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
+
+                                        else: 
+                                            opt = blp.bdh(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
+                                    
+                                        cols = opt.columns.to_frame()
+
+                                        for i in range (opt.shape[1]):
+                                            settlements = pd.DataFrame()
+                                            settlements["px_settle"] = opt.iloc[:, i]
+                                            settlements["commod_code"] = cols.iloc[i, 0][0:1]
+                                            settlements["opt_put_call"] = cols.iloc[i, 0][4:5]
+                                            if (year == curr_yr):
+                                                settlements["opt_strike_px"] = cols.iloc[i, 0][-11:-7]
+                                            settlements["contract_month"] = cols.iloc[i, 0][2:4]
+
+                                            temp = pd.concat([temp, settlements], axis=0, ignore_index=False)
+                                            temp.drop(temp[np.isnan(temp["px_settle"])].index, inplace=True)
                                             temp.to_csv("Ag.csv", mode="w")
-                                        except:
-                                            pass
+                                    except:
+                                        pass
                                 else:
                                     opt = blp.bdh(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date=dt.date.today())
                                     try:
@@ -135,17 +169,30 @@ class AgScraper(object):
                             if signal == 1:
                                 df = blp.bds(ticker + month + year[3:] + " " + "Comdty", "OPT_CHAIN")
                                 if (df.shape[0] != 0):
-                                    for security in df.iloc[:, 0]:
-                                        try:
-                                            opt = blp.bdp(tickers=security, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], VWAP_Dt='20240101')
-                                            opt["commod_code"] = ticker
-                                            opt["contract_month"] = opt.index.str[2:3] + year[3:]
-                                            temp_index = opt["px_settle_last_dt"]
-                                            opt.set_index(temp_index, inplace=True)
-                                            temp = pd.concat([temp, opt], axis=0, ignore_index=False)
+                                    s = df.iloc[:, 0]
+                                    try:
+                                        if (year == curr_yr):
+                                            opt = blp.bdh(tickers=s, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
+
+                                        else: 
+                                            opt = blp.bdh(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
+                                    
+                                        cols = opt.columns.to_frame()
+
+                                        for i in range (opt.shape[1]):
+                                            settlements = pd.DataFrame()
+                                            settlements["px_settle"] = opt.iloc[:, i]
+                                            settlements["commod_code"] = cols.iloc[i, 0][0:1]
+                                            settlements["opt_put_call"] = cols.iloc[i, 0][4:5]
+                                            if (year == curr_yr):
+                                                settlements["opt_strike_px"] = cols.iloc[i, 0][-11:-7]
+                                            settlements["contract_month"] = cols.iloc[i, 0][2:4]
+
+                                            temp = pd.concat([temp, settlements], axis=0, ignore_index=False)
+                                            temp.drop(temp[np.isnan(temp["px_settle"])].index, inplace=True)
                                             temp.to_csv("Ag.csv", mode="w")
-                                        except:
-                                            pass
+                                    except:
+                                        pass
                                 else:
                                     opt = blp.bdh(tickers = ticker + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date=dt.date.today())
                                     try:
