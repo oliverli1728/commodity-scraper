@@ -151,7 +151,7 @@ class AgScraper(object):
                                     except:
                                         pass
                                 else:
-                                    opt = blp.bdp(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date=dt.date.today())
+                                    opt = blp.bdp(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"])
                                     try:
                                         opt.columns = opt.columns.droplevel()
                                         opt["commod_code"] = ticker
@@ -196,7 +196,7 @@ class AgScraper(object):
                                     except:
                                         pass
                                 else:
-                                    opt = blp.bdp(tickers = ticker + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date=dt.date.today())
+                                    opt = blp.bdp(tickers = ticker + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"])
                                     try:
                                         opt.columns = opt.columns.droplevel()
                                         opt["commod_code"] = ticker
