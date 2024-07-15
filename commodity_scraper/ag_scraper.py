@@ -135,7 +135,6 @@ class AgScraper(object):
                                         else: 
                                             opt = blp.bdp(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"])
                                     
-
                                         for i in range (opt.shape[1]):
                                             strikes = list(opt.index)
                                             opt["commod_code"] = strikes[i][0:1]
@@ -143,15 +142,16 @@ class AgScraper(object):
                                             opt.set_index("px_settle_last_dt", drop=False, inplace=True)
                                             opt.index.name = None
                                             temp = pd.concat([temp, opt], axis=0, ignore_index=False)
-                                            temp.to_csv("Ag.csv", mode="w")
                                     except:
                                         pass
                                 else:
                                     opt = blp.bdp(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"])
                                     try:
-                                        opt.columns = opt.columns.droplevel()
-                                        opt["commod_code"] = ticker
-                                        opt["contract_month"] = opt.index.str[2:3] + year[3:]
+                                        strikes = list(opt.index)
+                                        opt["commod_code"] = strikes[i][0:1]
+                                        opt["contract_month"] = strikes[i][2:4]
+                                        opt.set_index("px_settle_last_dt", drop=False, inplace=True)
+                                        opt.index.name = None
                                         temp = pd.concat([temp, opt], axis=0, ignore_index=False)
                                         temp.to_csv("Ag.csv", mode="w")
                                     except: 
@@ -180,8 +180,8 @@ class AgScraper(object):
                                                 opt["commod_code"] = strikes[i][0:2]
                                                 opt["contract_month"] = strikes[i][2:4]
                                             elif (len(ticker) == 3):
-                                                settlements["commod_code"] = cols.iloc[i, 0][0:3]
-                                                settlements["contract_month"] = cols.iloc[i, 0][3:5]
+                                                opt["commod_code"] = strikes[i][0:3]
+                                                opt["contract_month"] = strikes[i][3:5]
 
                                             opt.set_index("px_settle_last_dt", drop=False, inplace=True)
                                             opt.index.name = None
@@ -192,9 +192,16 @@ class AgScraper(object):
                                 else:
                                     opt = blp.bdp(tickers = ticker + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"])
                                     try:
-                                        opt.columns = opt.columns.droplevel()
-                                        opt["commod_code"] = ticker
-                                        opt["contract_month"] = opt.index.str[2:3] + year[3:]
+                                        strikes = list(opt.index)
+                                        if (len(ticker) == 2):
+                                            opt["commod_code"] = strikes[i][0:2]
+                                            opt["contract_month"] = strikes[i][2:4]
+                                        elif (len(ticker) == 3):
+                                            opt["commod_code"] = strikes[i][0:3]
+                                            opt["contract_month"] = strikes[i][3:5]
+
+                                        opt.set_index("px_settle_last_dt", drop=False, inplace=True)
+                                        opt.index.name = None
                                         temp = pd.concat([temp, opt], axis=0, ignore_index=False)
                                         temp.to_csv("Ag.csv", mode="w")
                                     except: 
