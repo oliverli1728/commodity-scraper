@@ -41,7 +41,7 @@ class AgScraper(object):
                             if (df.shape[0] != 0):
                                 s = df.iloc[:, 0]
                                 try:
-                                    if (year == curr_yr):
+                                    if (year <= curr_yr):
                                         opt = blp.bdh(tickers=s, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
                                     else: 
                                         opt = blp.bdh(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
@@ -79,7 +79,7 @@ class AgScraper(object):
                             if (df.shape[0] != 0):
                                 s = df.iloc[:, 0]
                                 try:
-                                    if (year == curr_yr):
+                                    if (year <= curr_yr):
                                         opt = blp.bdh(tickers=s, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"], start_date = start_date)
 
                                     else: 
@@ -129,24 +129,20 @@ class AgScraper(object):
                                 if (df.shape[0] != 0):
                                     s = df.iloc[:, 0]
                                     try:
-                                        if (year == curr_yr):
+                                        if (year <= curr_yr):
                                             opt = blp.bdp(tickers=s, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"])
 
                                         else: 
                                             opt = blp.bdp(tickers = ticker + " " + month + year[3:] + " " + "Comdty", flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"])
                                     
-                                        cols = opt.columns.to_frame()
 
                                         for i in range (opt.shape[1]):
-                                            settlements = pd.DataFrame()
-                                            settlements["px_settle"] = opt.iloc[:, i]
-                                            settlements["commod_code"] = cols.iloc[i, 0][0:1]
-                                            settlements["opt_put_call"] = cols.iloc[i, 0][4:5]
-                                            if (year == curr_yr):
-                                                settlements["opt_strike_px"] = cols.iloc[i, 0][-11:-7]
-                                            settlements["contract_month"] = cols.iloc[i, 0][2:4]
-
-                                            temp = pd.concat([temp, settlements], axis=0, ignore_index=False)
+                                            strikes = list(opt.index)
+                                            opt["commod_code"] = strikes[i][0:1]
+                                            opt["contract_month"] = strikes[i][2:4]
+                                            opt.set_index("px_settle_last_dt", drop=False, inplace=True)
+                                            opt.index.name = None
+                                            temp = pd.concat([temp, opt], axis=0, ignore_index=False)
                                             temp.to_csv("Ag.csv", mode="w")
                                     except:
                                         pass
@@ -170,7 +166,7 @@ class AgScraper(object):
                                 if (df.shape[0] != 0):
                                     s = df.iloc[:, 0]
                                     try:
-                                        if (year == curr_yr):
+                                        if (year <= curr_yr):
                                             opt = blp.bdp(tickers=s, flds=["opt_strike_px", "opt_undl_px","opt_days_expire","opt_put_call", "px_settle", "px_settle_last_dt"])
 
                                         else: 
@@ -179,19 +175,17 @@ class AgScraper(object):
                                         cols = opt.columns.to_frame()
 
                                         for i in range (opt.shape[1]):
-                                            settlements = pd.DataFrame()
-                                            settlements["px_settle"] = opt.iloc[:, i]
+                                            strikes = list(opt.index)
                                             if (len(ticker == 2)):
-                                                settlements["commod_code"] = cols.iloc[i, 0][0:2]
-                                                settlements["contract_month"] = cols.iloc[i, 0][2:4]
+                                                opt["commod_code"] = strikes[i][0:2]
+                                                opt["contract_month"] = strikes[i][2:4]
                                             elif (len(ticker) == 3):
                                                 settlements["commod_code"] = cols.iloc[i, 0][0:3]
                                                 settlements["contract_month"] = cols.iloc[i, 0][3:5]
-                                            settlements["opt_put_call"] = cols.iloc[i, 0][4:5]
-                                            if (year == curr_yr):
-                                                settlements["opt_strike_px"] = cols.iloc[i, 0][-11:-7]
 
-                                            temp = pd.concat([temp, settlements], axis=0, ignore_index=False)
+                                            opt.set_index("px_settle_last_dt", drop=False, inplace=True)
+                                            opt.index.name = None
+                                            temp = pd.concat([temp, opt], axis=0, ignore_index=False)
                                             temp.to_csv("Ag.csv", mode="w")
                                     except:
                                         pass
